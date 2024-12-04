@@ -31,7 +31,7 @@ const DmdDiamondClaiming = () => {
   const [claimableBalance, setClaimableBalance] = useState<string | null>();
   const [validV3Address, setValidV3Address] = useState<boolean | null>(null);
   const [validV4Address, setValidV4Address] = useState<boolean | null>(null);
-  const [claimMessagePrefix, setClaimMessagePrefix] = useState<string>(process.env.REACT_APP_CLAIM_MESSAGE_PREFIX + v4Address);
+  const [claimMessagePrefix, setClaimMessagePrefix] = useState<string>(import.meta.env.VITE_APP_CLAIM_MESSAGE_PREFIX + v4Address);
 
   useEffect(() => {
     try {
@@ -126,7 +126,7 @@ const DmdDiamondClaiming = () => {
     }
 
     setV4Address(e.target.value);
-    setClaimMessagePrefix(process.env.REACT_APP_CLAIM_MESSAGE_PREFIX + e.target.value);
+    setClaimMessagePrefix(import.meta.env.VITE_APP_CLAIM_MESSAGE_PREFIX + e.target.value);
   }
 
   const handleSignatureChange = async (newVal: any) => {
@@ -170,7 +170,7 @@ const DmdDiamondClaiming = () => {
   return (
     <div className={darkMode ? 'dark' : 'light'}>
       <div className="navbar">
-        <a href={process.env.REACT_APP_WIKI_URL || "#"} target="_blank">
+        <a href={import.meta.env.VITE_APP_WIKI_URL || "#"} target="_blank">
           User Guide: <strong>How to claim <span className="diamond">💎</span></strong>
         </a>
         <div className="btnsContainer">
@@ -214,7 +214,7 @@ const DmdDiamondClaiming = () => {
               <p className="text-success">
                 Claimed successfully! Please check the transaction here{" "}
                 <a
-                  href={process.env.REACT_APP_EXPLORER_TX_URL + claimedTxHash}
+                  href={import.meta.env.VITE_APP_EXPLORER_TX_URL + claimedTxHash}
                   target="_blank"
                 >
                   [link]
@@ -226,7 +226,7 @@ const DmdDiamondClaiming = () => {
                 <p className="text-error">
                   {MESSAGES.alreadyClaimed}
                   <a
-                    href={process.env.REACT_APP_EXPLORER_TX_URL + claimedTxHash}
+                    href={import.meta.env.VITE_APP_EXPLORER_TX_URL + claimedTxHash}
                     target="_blank"
                   >
                     [link]

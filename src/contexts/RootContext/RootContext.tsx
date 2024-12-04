@@ -30,7 +30,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
   const [claimContract, setClaimContract] = useState<any>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [rootInitialized, setRootInitialized] = useState<boolean>(false);
-  const [provider, setProvider] = useState<any>(new ethers.JsonRpcProvider(process.env.REACT_APP_RPC_URL));
+  const [provider, setProvider] = useState<any>(new ethers.JsonRpcProvider(import.meta.env.VITE_APP_RPC_URL));
 
   useEffect(() => {
     console.log("[INFO] Initializing Root Context");
@@ -63,10 +63,10 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
 
   const connectWallet = async (): Promise<any> => {
     try {
-        const chainId = process.env.REACT_APP_CHAIN_ID || 777017;
+        const chainId = import.meta.env.VITE_APP_CHAIN_ID || 777017;
         let chainIdHex = ethers.toBeHex(chainId);
         chainIdHex = chainIdHex.slice(0, 2) + chainIdHex.slice(3);
-        const url = process.env.REACT_APP_RPC_URL || "http://localhost:8545";
+        const url = import.meta.env.VITE_APP_RPC_URL || "http://localhost:8545";
         const chainOptions: { [key: number]: string } = {
             [chainId]: url,
         };
@@ -115,7 +115,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
                 method: "wallet_addEthereumChain",
                 params: [
                   {
-                    chainName: process.env.REACT_APP_CHAIN_NAME || "DMD Diamond",
+                    chainName: import.meta.env.VITE_APP_CHAIN_NAME || "DMD Diamond",
                     chainId: chainIdHex,
                     nativeCurrency: { name: "DMD", decimals: 18, symbol: "DMD" },
                     rpcUrls: [url],
@@ -144,7 +144,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
 
   const getClaimContract = async () => {
     let signer;
-    const contractAddress = process.env.REACT_APP_CLAIMING_CONTRACT || '0xCAFa71b474541D1676093866088ccA4AB9a07722';
+    const contractAddress = import.meta.env.VITE_APP_CLAIMING_CONTRACT || '0xCAFa71b474541D1676093866088ccA4AB9a07722';
 
     try {
       signer = await provider.getSigner(0);
@@ -168,7 +168,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
   const getClaimTxHash = async (v4Address: string): Promise<string | null> => {
     try {
         let eventFilter = claimContract.filters.Claim(v4Address);
-        let logs: Log[] = await claimContract.queryFilter(eventFilter, Number(process.env.REACT_APP_CONTRACT_DEPLOY_BLOCK || 0));
+        let logs: Log[] = await claimContract.queryFilter(eventFilter, Number(import.meta.env.VITE_APP_CONTRACT_DEPLOY_BLOCK || 0));
 
         if (logs.length === 0) {
           return null;
