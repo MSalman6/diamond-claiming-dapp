@@ -1,6 +1,7 @@
 import BN from "bn.js";
 import { ethers } from "ethers";
 import copy from 'copy-to-clipboard';
+import BigNumber from "bignumber.js";
 import { toast } from 'react-toastify';
 import { MESSAGES } from "../../constants/messages";  
 import { useEffect, useRef, useState } from "react";
@@ -9,10 +10,10 @@ import { ensure0x } from "diamond-contracts-claiming/dist/api/src/cryptoHelpers"
 
 const DmdDiamondClaiming = () => {
   const {
+    appKit,
     account,
     claimApi,
     showLoader,
-    connectWallet,
     getClaimTxHash,
     handleErrorMsg,
     ensureWalletConnection,
@@ -177,7 +178,17 @@ const DmdDiamondClaiming = () => {
           <button onClick={toggleDarkMode} className="primaryBtn theme">
             <i className={`fas ${darkMode ? 'fa-sun' : 'fa-cloud-moon'}`}></i>
           </button>
-          <button className="primaryBtn walletConnectBtn" onClick={connectWallet}>{account ? account : 'Connect Wallet'}</button>
+          {
+            account ? (
+              <button className="primaryBtn walletConnectBtn">
+                {account}
+              </button>
+            ) : (
+              <button className="primaryBtn walletConnectBtn" onClick={() => appKit.open()}>
+                Connect Wallet
+              </button>
+            )
+          }
         </div>
       </div>
 
@@ -237,7 +248,7 @@ const DmdDiamondClaiming = () => {
               <div><p className="text-error">{claimError}</p></div>
             )}
 
-            {claimableBalance && (
+            {claimableBalance && BigNumber(claimableBalance).isGreaterThan(1 * 10 ** 18) && (
               <>
                 <input
                   placeholder="Please specify your v4 address"

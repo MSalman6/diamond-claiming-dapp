@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import Web3Modal from "web3modal";
 import { toast } from 'react-toastify';
 import Loader from '../../components/Loader';
 import { ContextProviderProps } from "./types";
@@ -7,8 +6,15 @@ import { Log } from '@ethersproject/abstract-provider';
 import { CryptoSol } from 'diamond-contracts-claiming/dist/api/src/cryptoSol';
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ClaimContract from 'diamond-contracts-claiming/artifacts/contracts/ClaimContract.sol/ClaimContract.json';
+import { useWalletConnectContext } from '../WalletConnect';
+import WalletConnectProvider from '@walletconnect/web3-provider';
+import { switchChain, watchAccount } from '@wagmi/core';
+import { wagmiConfig } from "../WalletConnect/config";
+import { useAccount, useDisconnect } from 'wagmi';
+
 
 interface RootContextProps {
+  appKit?: any,
   provider: any,
   claimApi: any,
   account: string | null,
@@ -17,13 +23,16 @@ interface RootContextProps {
   ensureWalletConnection: () => boolean,
   handleErrorMsg: (err: Error, alternateMsg: string) => void,
   showLoader: (loading: boolean, loadingMsg: string) => void,
-  connectWallet: () => Promise<{ provider: any } | undefined>,
   getClaimTxHash: (v3Address: string) => Promise<string | null>,
 }
 
 const RootContext = createContext<RootContextProps | undefined>(undefined);
 
 const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
+  const { disconnect } = useDisconnect();
+  const { appKit } = useWalletConnectContext();
+  const { connector, isConnected, status } = useAccount();
+
   const [claimApi, setClaimApi] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [account, setAccount] = useState<string | null>(null);
@@ -31,6 +40,35 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [rootInitialized, setRootInitialized] = useState<boolean>(false);
   const [provider, setProvider] = useState<any>(new ethers.JsonRpcProvider(import.meta.env.VITE_APP_RPC_URL));
+
+  // Initialize Web3 with CustomHttpProvider
+  const chainId = import.meta.env.VITE_APP_CHAIN_ID || 777019;
+  const rpcUrl = import.meta.env.VITE_APP_RPC_URL || 'http://62.171.133.46:55100/';
+  const [wagmiConnector, setWagmiConnector] = useState<WalletConnectProvider | null>(null);
+
+  useEffect(() => {
+    if (connector?.getProvider && isConnected && status === 'connected') {
+      InitializeWagmiWallet(connector);
+    }
+  }, [connector, isConnected, status]);
+
+  useEffect(() => {
+    if (wagmiConnector) {
+      const unwatch = watchAccount(wagmiConfig, {
+        onChange(account) { 
+          if (account.address) {
+            InitializeWagmiWallet(wagmiConnector);
+          } else {
+            window.location.reload();
+          }
+        },
+      })
+    
+      return () => {
+        unwatch()
+      };
+    }
+  }, [wagmiConnector]);
 
   useEffect(() => {
     console.log("[INFO] Initializing Root Context");
@@ -61,86 +99,44 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
     }
   }
 
-  const connectWallet = async (): Promise<any> => {
+  const InitializeWagmiWallet = async (connector: any) => {
     try {
-        const chainId = import.meta.env.VITE_APP_CHAIN_ID || 777017;
-        let chainIdHex = ethers.toBeHex(chainId);
-        chainIdHex = chainIdHex.slice(0, 2) + chainIdHex.slice(3);
-        const url = import.meta.env.VITE_APP_RPC_URL || "http://localhost:8545";
-        const chainOptions: { [key: number]: string } = {
-            [chainId]: url,
-        };
+      let provider = await connector.getProvider();
+      provider = await new ethers.BrowserProvider(provider);
+      const signer = await provider.getSigner();
 
-        const providerOptions: any = {
-            // walletconnect: {
-            //     package: walletConnectProvider,
-            //     options: {
-            //         chainId,
-            //         rpc: chainOptions,
-            //     },
-            // },
-        };
-
-        const web3Modal = new Web3Modal({
-            network: "mainnet",
-            cacheProvider: false,
-            providerOptions,
-        });
-
-        // clear cache so on each connect it asks for wallet type
-        web3Modal.clearCachedProvider();
-        const web3ModalInstance = await web3Modal.connect();
-
-        // handle account change
-        web3ModalInstance.on("accountsChanged", function (accounts: string[]) {
-            if (accounts.length === 0) {
-                window.location.reload();
-            } else {
-                connectWallet();
-            }
-        });
-
-        const provider = new ethers.BrowserProvider(web3ModalInstance);
-
-        // force user to change to DMD network
-        if (await web3ModalInstance.request({ method: 'eth_chainId' }) !== chainIdHex) {
-          try {
-            await web3ModalInstance.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: chainIdHex }],
-            });
-          } catch (err: any) {
-            if (err.code === 4902) {
-              await web3ModalInstance.request({
-                method: "wallet_addEthereumChain",
-                params: [
-                  {
-                    chainName: import.meta.env.VITE_APP_CHAIN_NAME || "DMD Diamond",
-                    chainId: chainIdHex,
-                    nativeCurrency: { name: "DMD", decimals: 18, symbol: "DMD" },
-                    rpcUrls: [url],
-                    blockExplorerUrls: null,
-                  },
-                ],
-                
-              });
-            } else {
-              console.error("[Wallet Connect] Other Error", err);
-              return undefined;
-            }
+      // Check if the user is on the correct network, if not switch to the desired network
+      if (await signer.provider._network.chainId !== Number(chainId)) {
+        try {
+          showLoader(true, "Please connect to the DMD Network");
+          await switchChain(wagmiConfig, { chainId: Number(chainId) });
+          showLoader(false, "");
+        } catch (err: any) {
+          if (err.code === 4001) {
+            showLoader(false, "");
+            await connector.disconnect();
+            disconnect();
+            return toast.warn("Please connect to the DMD Network to continue");
+          } else {
+            console.error("[Wallet Connect] Error", err);
+            showLoader(false, "");
+            return undefined;
           }
         }
+      }
 
-        const walletAddress = (await web3ModalInstance.request({ method: 'eth_requestAccounts' }))[0];
-        setAccount(walletAddress); // Assuming setAccount is defined elsewhere
-        setProvider(provider);
+      appKit.close(); // close modal after login
 
-        return provider;
+      // Retrieve the wallet address
+      setProvider(provider);
+      setAccount(signer.address);
+      setWagmiConnector(connector);
+        
+      return provider
     } catch (err) {
-        console.error("[Wallet Connect]", err);
-        return undefined;
+      console.error(err);
     }
-  };
+  }
 
   const getClaimContract = async () => {
     let signer;
@@ -190,6 +186,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
   };
 
   const contextValue = {
+    appKit,
     account,
     provider,
     claimApi,
@@ -198,7 +195,6 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
     ensureWalletConnection,
     handleErrorMsg,
     getClaimTxHash,
-    connectWallet,
     showLoader
   };
 
