@@ -23,7 +23,7 @@
     "copy-to-clipboard": "^3.3.3",
     "crypto": "^1.0.1",
     "crypto-browserify": "^3.12.0",
-    "diamond-contracts-claiming": "github:DMDCoin/diamond-contracts-claiming#main",
+    "diamond-contracts-claiming": "github:MSalman6/diamond-contracts-claiming#ui-support",
     "elliptic": "^6.5.5",
     "ethers": "^6.12.0",
     "node-polyfill-webpack-plugin": "^3.0.0",
@@ -45,7 +45,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject",
-    "clean-install": "rm -f package-lock.json && rm -rf node_modules/diamond-contracts-claiming && npm install"
+    "clean-install": "rm -f package-lock.json && rm -rf node_modules/diamond-contracts-claiming && npm cache clean --force && npm install --no-cache"
   },
   "eslintConfig": {
     "extends": [

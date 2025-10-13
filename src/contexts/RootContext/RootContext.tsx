@@ -63,7 +63,7 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
 
   const connectWallet = async (): Promise<any> => {
     try {
-        const chainId = process.env.REACT_APP_CHAIN_ID || 27272;
+        const chainId = process.env.REACT_APP_CHAIN_ID || 17771;
         let chainIdHex = ethers.toBeHex(chainId);
         const url = process.env.REACT_APP_RPC_URL || "http://localhost:8545";
         const chainOptions: { [key: number]: string } = {
