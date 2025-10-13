@@ -332,6 +332,21 @@ form input:focus {
     border-radius: 10px;
 }
 
+.terms-container > .terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.terms-text {
+    font-size: 0.9rem;
+    text-align: left;
+    color: var(--primary);
+    margin-left: 0.5rem;
+}
+
 /* media queries for responsiveness */
 @media (max-width: 768px) {
     body {

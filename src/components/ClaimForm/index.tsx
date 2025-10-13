@@ -32,6 +32,7 @@ const DmdDiamondClaiming = () => {
   const [validV3Address, setValidV3Address] = useState<boolean | null>(null);
   const [validV4Address, setValidV4Address] = useState<boolean | null>(null);
   const [claimMessagePrefix, setClaimMessagePrefix] = useState<string>(process.env.REACT_APP_CLAIM_MESSAGE_PREFIX + v4Address);
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -291,9 +292,34 @@ const DmdDiamondClaiming = () => {
               </>
             )}
 
+            {validV4Address && claimableBalance && signedMessage && !signatureError && (
+              <div className="terms-container" style={{ margin: '20px 0' }}>
+                <label className="terms-label">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    style={{ marginTop: '2px', flexShrink: 0 }}
+                  />
+                  <span className="terms-text">
+                    I have read and accept the{' '}
+                    <a
+                      href="https://github.com/DMDcoin/whitepaper/wiki/F.-Blockchain-Coin-Economy#f42-claiming-roadmap"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontWeight: 'bold', textDecoration: 'underline' }}
+                    >
+                      DMD Diamond Whitepaper Ruleset
+                    </a>
+                    {' '}and agree to claim my Airdrop funds under these terms.
+                  </span>
+                </label>
+              </div>
+            )}
+
             {validV4Address && claimableBalance && signedMessage && (
               <button disabled={
-                claimableBalance && !signatureError && parseFloat(claimableBalance) > -1
+                claimableBalance && !signatureError && parseFloat(claimableBalance) > -1 && termsAccepted
                   ? false
                   : true
               } className="primaryBtn" type="submit">
