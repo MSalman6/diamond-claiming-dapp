@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { ethers } from "ethers";
+import { ethers, getAddress } from "ethers";
 import copy from 'copy-to-clipboard';
 import { toast } from 'react-toastify';
 import { MESSAGES } from "../../constants/messages";  
@@ -88,7 +88,7 @@ const DmdDiamondClaiming = () => {
     showLoader(true, "Claiming... 💎");
     const postFix = claimMessagePrefix.split(v4Address)[1] || "";
 
-    claimApi.claim(v3Address, v4Address, signedMessage, postFix).then(async (res: any) => {
+    claimApi.claim(v3Address, getAddress(v4Address), signedMessage, postFix).then(async (res: any) => {
       showLoader(false, "");
       setSignatureError(null);
       if (res.status) {
