@@ -88,7 +88,7 @@ const DmdDiamondClaiming = () => {
     showLoader(true, "Claiming... 💎");
     const postFix = claimMessagePrefix.split(v4Address)[1] || "";
 
-    claimApi.claim(v3Address, getAddress(v4Address), signedMessage, postFix).then(async (res: any) => {
+    claimApi.claim(v3Address, v4Address, signedMessage, postFix).then(async (res: any) => {
       showLoader(false, "");
       setSignatureError(null);
       if (res.status) {
@@ -116,8 +116,9 @@ const DmdDiamondClaiming = () => {
   };
 
   const handleV4AddressChange = (e: any) => {
+    const v4Address = getAddress(e.target.value);
     try {
-      if (ethers.getAddress(e.target.value)) {
+      if (v4Address) {
         setValidV4Address(true);
       } else {
         setValidV4Address(false);
@@ -126,8 +127,8 @@ const DmdDiamondClaiming = () => {
       setValidV4Address(false);
     }
 
-    setV4Address(e.target.value);
-    setClaimMessagePrefix(process.env.REACT_APP_CLAIM_MESSAGE_PREFIX + e.target.value);
+    setV4Address(v4Address);
+    setClaimMessagePrefix(process.env.REACT_APP_CLAIM_MESSAGE_PREFIX + v4Address);
   }
 
   const handleSignatureChange = async (newVal: any) => {
