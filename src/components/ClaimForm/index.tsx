@@ -132,33 +132,34 @@ const DmdDiamondClaiming = () => {
   }
 
   const handleSignatureChange = async (newVal: any) => {
-    try {
-      const prefixString = await claimApi.prefixString();
-      const postFix = claimMessagePrefix.split(v4Address)[1] || "";
+    // try {
+    //   const prefixString = await claimApi.prefixString();
+    //   const postFix = claimMessagePrefix.split(v4Address)[1] || "";
 
-      claimApi.cryptoJS.getPublicKeyFromSignature(
-        newVal,
-        prefixString + v4Address + postFix,
-        true
-      );
+    //   claimApi.cryptoJS.getPublicKeyFromSignature(
+    //     newVal,
+    //     prefixString + v4Address + postFix,
+    //     true
+    //   );
 
-      const rs = claimApi.cryptoJS.signatureBase64ToRSV(newVal);
+    //   const rs = claimApi.cryptoJS.signatureBase64ToRSV(newVal);
 
-      // Convert Buffer to hex
-      const rHex = "0x" + Buffer.from(rs.r).toString("hex");
-      const sHex = "0x" + Buffer.from(rs.s).toString("hex");
+    //   // Convert Buffer to hex
+    //   const rHex = "0x" + Buffer.from(rs.r).toString("hex");
+    //   const sHex = "0x" + Buffer.from(rs.s).toString("hex");
       
-      // Validate lengths
-      if (rHex.length !== 66) throw new Error("Invalid 'r' value length.");
-      if (sHex.length !== 66) throw new Error("Invalid 's' value length.");
+    //   // Validate lengths
+    //   if (rHex.length !== 66) throw new Error("Invalid 'r' value length.");
+    //   if (sHex.length !== 66) throw new Error("Invalid 's' value length.");
 
-      setSignatureError(null);
-    } catch (err) {
-      setSignatureError(
-        MESSAGES.signatureError
-      );
-    }
+    //   setSignatureError(null);
+    // } catch (err) {
+    //   setSignatureError(
+    //     MESSAGES.signatureError
+    //   );
+    // }
 
+    setSignatureError(null);
     setSignedMessage(newVal);
   }
 
