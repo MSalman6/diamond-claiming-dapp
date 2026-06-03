@@ -49,7 +49,24 @@ const RootContextProvider: React.FC<ContextProviderProps> = ({ children }) => {
 
     getClaimContract().then((contract: any) => {
       setClaimContract(contract);
-      setClaimApi(new CryptoSol(contract));
+      const api = new CryptoSol(contract);
+      // Override gas floor: fetch from RPC, use 50 gwei minimum
+      (api as any).getGasPriceWithFloor = async (): Promise<bigint> => {
+        const fiftyGweiWei = BigInt(50) * BigInt(1_000_000_000);
+        const runner = (contract as any)?.runner ?? null;
+        const rpcProvider = runner?.provider ?? null;
+        if (!rpcProvider) {
+          return fiftyGweiWei;
+        }
+        try {
+          const currentGasPrice: bigint = await rpcProvider.getGasPrice();
+          if (typeof currentGasPrice === 'bigint') {
+            return currentGasPrice > fiftyGweiWei ? currentGasPrice : fiftyGweiWei;
+          }
+        } catch (_) {}
+        return fiftyGweiWei;
+      };
+      setClaimApi(api);
     });
   }
 
